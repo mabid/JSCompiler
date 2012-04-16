@@ -2,7 +2,7 @@ var convert_pitch = function(pitch){
 	var letter =  pitch.charAt(0);	
 	var octave = pitch.charAt(1);
 	var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
-	return 12 + 12 * octave + mapping[letter];
+	return 12 + (12 * octave )+ mapping[letter];
 }
 
 var note_obj = function(expr, start){
@@ -43,7 +43,7 @@ var compile = function(musexpr){
       default :
         var l_part = rec_compile(expr.left);
         if(expr.tag == 'seq'){
-          start = start + l_part.endTime;
+          start = l_part.endTime;
         }
         var r_part = rec_compile(expr.right);
         var e_time = (l_part.endTime > r_part.endTime) ? l_part.endTime : r_part.endTime;
@@ -68,5 +68,4 @@ var melody_mus =
          left: { tag: 'note', pitch: 'c4', dur: 500 },
          right: { tag: 'note', pitch: 'd4', dur: 500 } } };
 
-console.log(melody_mus);
 console.log(compile(melody_mus));
