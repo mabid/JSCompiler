@@ -1,29 +1,26 @@
-var convert_pitch = function(pitch){
-	var letter =  pitch.charAt(0);	
-	var octave = pitch.charAt(1);
-	var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
-	return 12 + (12 * octave )+ mapping[letter];
-}
-
-var note_obj = function(expr, start){
-	return { tag:'note',dur:expr.dur,pitch:convert_pitch(expr.pitch),start:start};
-};
-
-var rest_obj = function(expr, start){
-	return { tag:'rest',dur:expr.dur,start:start};
-};
-
-var process_note = function(note, start){
-	return {endTime : start+note.dur, value : [note_obj(note,start)]};
-}
-
-var process_rest = function(rest, start){
-	return {endTime : start+rest.dur, value : [rest_obj(rest,start)]};
-}
-
-
-
 var compile = function(musexpr){
+	var convert_pitch = function(pitch){
+		var letter =  pitch.charAt(0);	
+		var octave = pitch.charAt(1);
+		var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+		return 12 + (12 * octave )+ mapping[letter];
+	};
+
+	var note_obj = function(expr, start){
+		return { tag:'note',dur:expr.dur,pitch:convert_pitch(expr.pitch),start:start};
+	};
+
+	var rest_obj = function(expr, start){
+		return { tag:'rest',dur:expr.dur,start:start};
+	};
+
+	var process_note = function(note, start){
+		return {endTime : start+note.dur, value : [note_obj(note,start)]};
+	};
+
+	var process_rest = function(rest, start){
+		return {endTime : start+rest.dur, value : [rest_obj(rest,start)]};
+	};
 
 	var process_repeat = function(repeat, startTime){
 		var repeats = [];
