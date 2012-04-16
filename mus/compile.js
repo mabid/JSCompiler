@@ -18,19 +18,23 @@ var process_note = function(note, start){
 }
 
 var process_rest = function(rest, start){
-	return {endTime : start+rest.dur, value : [rest_obj(note,start)]};
+	return {endTime : start+rest.dur, value : [rest_obj(rest,start)]};
 }
 
-var process_repeat = function(repeat, start){
-	var repeats = [];
-	for(i=0;i<repeat.count;i++){
-		repeats.push( note_obj(repeat.section, start*repeat.section.dur) );
-	}
-	return {endTime : start+repeat.dur*repeat.count, value : repeats};
-}
 
 
 var compile = function(musexpr){
+
+	var process_repeat = function(repeat, startTime){
+		var repeats = [];
+		var compiled = null;
+		for(i=0;i<repeat.count;i++){
+			var compiled = rec_compile(repeat.section);
+			start = compiled.endTime;
+			repeats = repeats.concat(compiled.value);
+		}
+		return {endTime : compiled.endTime, value : repeats};
+	};
 
   var rec_compile = function(expr){
     switch(expr.tag){
@@ -39,7 +43,7 @@ var compile = function(musexpr){
       case 'note':
 				return process_note(expr, start);
       case 'repeat':
-				return process_repeats(expr, start);
+				return process_repeat(expr, start);
       default :
         var l_part = rec_compile(expr.left);
         if(expr.tag == 'seq'){
@@ -56,16 +60,23 @@ var compile = function(musexpr){
   return rec_compile(musexpr).value;
 };
 
-
 var melody_mus = 
     { tag: 'seq',
-      left: 
-       { tag: 'seq',
-         left: { tag: 'note', pitch: 'a4', dur: 250 },
-         right: { tag: 'note', pitch: 'b4', dur: 250 } },
+      left:
+       { tag: 'repeat',
+         section:
+          { tag: 'seq',
+            left: { tag: 'note', pitch: 'a4', dur: 250 },
+            right: { tag: 'rest', dur: 250 } },
+          count: 3 },
       right:
-       { tag: 'seq',
+       { tag: 'par',
          left: { tag: 'note', pitch: 'c4', dur: 500 },
-         right: { tag: 'note', pitch: 'd4', dur: 500 } } };
+         right:
+         { tag: 'seq',
+           left: { tag: 'note', pitch: 'd4', dur: 500 },
+           right: { tag: 'note', pitch: 'f3', dur: 250 } } } };
 
+//console.log(melody_mus);
 console.log(compile(melody_mus));
+
