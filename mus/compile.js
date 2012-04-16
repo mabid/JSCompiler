@@ -1,12 +1,27 @@
+var convert_pitch = function(pitch){
+	var letter =  pitch.charAt(0);	
+	var octave = pitch.charAt(1);
+	var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
+	return 12 + 12 * octave + mapping[letter];
+}
+
 var note_obj = function(expr, start){
-  return { tag:'note',dur:expr.dur,pitch:expr.pitch,start:start};
+  return { tag:'note',dur:expr.dur,pitch:convert_pitch(expr.pitch),start:start};
 };
 
-var process_note(note, start){
+var rest_obj = function(expr, start){
+  return { tag:'rest',dur:expr.dur,start:start};
+};
+
+var process_note = function(note, start){
 	return {endTime : start+note.dur, value : [note_obj(note,start)]};
 }
 
-var process_repeat(repeat, start){
+var process_rest = function(rest, start){
+	return {endTime : start+rest.dur, value : [rest_obj(note,start)]};
+}
+
+var process_repeat = function(repeat, start){
 	var repeats = [];
 	for(i=0;i<repeat.count;i++){
 		repeats.push( note_obj(repeat.section, start*repeat.section.dur) );
@@ -14,10 +29,13 @@ var process_repeat(repeat, start){
 	return {endTime : start+repeat.dur*repeat.count, value : repeats};
 }
 
+
 var compile = function(musexpr){
 
   var rec_compile = function(expr){
     switch(expr.tag){
+			case 'rest':
+				return process_rest(expr, start);
       case 'note':
 				return process_note(expr, start);
       case 'repeat':
