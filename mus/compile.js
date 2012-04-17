@@ -1,3 +1,5 @@
+var _und = require('./deps/underscore.js');
+
 var compile = (function(){
 
 	var process = function(musexpr){
@@ -5,17 +7,20 @@ var compile = (function(){
 		return comp.compile();
 	};
 
-	var convert_pitch = function(pitch){
+	var convertPitch= function(pitch){
 		var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
 		return 12 + (12 * pitch[1])+ mapping[pitch[0]];
 	};
+	
+	var convertNode = function(expr, start){
+	}
 
-	var note_obj = function(expr, start){
-		return { tag:'note',dur:expr.dur,pitch:convert_pitch(expr.pitch),start:start};
+	var makeNote = function(expr, start){
+		return  _und.extend(_und.clone(expr), {start:start, pitch : convertPitch(expr.pitch)});
 	};
 
-	var rest_obj = function(expr, start){
-		return { tag:'rest',dur:expr.dur,start:start};
+	var makeRest = function(expr, start){
+		return  _und.extend(_und.clone(expr), {start:start});
 	};
 
 	var Compiler = function(expr){
@@ -24,11 +29,11 @@ var compile = (function(){
 	};
 
 	Compiler.prototype.processNote = function(note, start){
-		return {endTime : start+note.dur, value : [note_obj(note,start)]};
+		return {endTime : start+note.dur, value : [makeNote(note,start)]};
 	};
 
 	Compiler.prototype.processRest = function(rest, start){
-		return {endTime : start+rest.dur, value : [rest_obj(rest,start)]};
+		return {endTime : start+rest.dur, value : [makeRest(rest,start)]};
 	};
 
 	Compiler.prototype.processRepeat = function(repeat, startTime){
@@ -56,7 +61,7 @@ var compile = (function(){
 					this.start = l_part.endTime;
 				}
 				var r_part = this.recCompile(expr.right);
-				var e_time = (l_part.endTime > r_part.endTime) ? l_part.endTime : r_part.endTime;
+				var e_time = Math.max(l_part.endTime, r_part.endTime);
 				return {endTime:e_time, value : l_part.value.concat(r_part.value) };
 		}
 	};
