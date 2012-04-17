@@ -1,9 +1,13 @@
-var compile = function(musexpr){
+var compile = (function(){
+
+	var process = function(musexpr){
+		var comp = new Compiler(musexpr);
+		return comp.compile();
+	};
+
 	var convert_pitch = function(pitch){
-		var letter =  pitch.charAt(0);	
-		var octave = pitch.charAt(1);
 		var mapping = {c:0,d:2,e:4,f:5,g:7,a:9,b:11};
-		return 12 + (12 * octave )+ mapping[letter];
+		return 12 + (12 * pitch[1])+ mapping[pitch[0]];
 	};
 
 	var note_obj = function(expr, start){
@@ -14,48 +18,56 @@ var compile = function(musexpr){
 		return { tag:'rest',dur:expr.dur,start:start};
 	};
 
-	var process_note = function(note, start){
+	var Compiler = function(expr){
+		this.expr = expr;
+		this.start = 0;
+	};
+
+	Compiler.prototype.processNote = function(note, start){
 		return {endTime : start+note.dur, value : [note_obj(note,start)]};
 	};
 
-	var process_rest = function(rest, start){
+	Compiler.prototype.processRest = function(rest, start){
 		return {endTime : start+rest.dur, value : [rest_obj(rest,start)]};
 	};
 
-	var process_repeat = function(repeat, startTime){
+	Compiler.prototype.processRepeat = function(repeat, startTime){
 		var repeats = [];
 		var compiled = null;
 		for(i=0;i<repeat.count;i++){
-			var compiled = rec_compile(repeat.section);
-			start = compiled.endTime;
+			var compiled = this.recCompile(repeat.section);
+			this.start = compiled.endTime;
 			repeats = repeats.concat(compiled.value);
 		}
 		return {endTime : compiled.endTime, value : repeats};
 	};
 
-	var rec_compile = function(expr){
+	Compiler.prototype.recCompile = function(expr){
 		switch(expr.tag){
 			case 'rest':
-				return process_rest(expr, start);
+				return this.processRest(expr, this.start);
 			case 'note':
-				return process_note(expr, start);
+				return this.processNote(expr, this.start);
 			case 'repeat':
-				return process_repeat(expr, start);
+				return this.processRepeat(expr, this.start);
 			default :
-				var l_part = rec_compile(expr.left);
+				var l_part = this.recCompile(expr.left);
 				if(expr.tag == 'seq'){
-					start = l_part.endTime;
+					this.start = l_part.endTime;
 				}
-				var r_part = rec_compile(expr.right);
+				var r_part = this.recCompile(expr.right);
 				var e_time = (l_part.endTime > r_part.endTime) ? l_part.endTime : r_part.endTime;
 				return {endTime:e_time, value : l_part.value.concat(r_part.value) };
 		}
 	};
 
+	Compiler.prototype.compile = function(){
+		return this.recCompile(this.expr).value;
+	};
 
-	var start = 0;
-	return rec_compile(musexpr).value;
-};
+	return process;
+
+})();
 
 var melody_mus = 
 { tag: 'seq',
