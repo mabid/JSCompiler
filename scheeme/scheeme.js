@@ -12,11 +12,17 @@ console.log(data);
 var parse = PEG.buildParser(data).parse;
 
 // Do some  tests
-assert.deepEqual(parse("a"),"a");
+assert.deepEqual(parse("   a   "),"a");
 
 assert.deepEqual(parse("(a)"),["a"]);
+assert.deepEqual(parse("( a)"),["a"]);
+assert.deepEqual(parse("   (   a   )"),["a"]);
 
 assert.deepEqual(parse("(+ a b)"),["+","a","b"]);
+assert.deepEqual(parse("(+ a     b)"),["+","a","b"]);
+assert.deepEqual(parse("(+ a b   )"),["+","a","b"]);
+assert.deepEqual(parse("(    + a    b)"),["+","a","b"]);
 
 var fac_result = ["define","factorial", ["lambda",["n"],["if",["=","n","0"],"1",["*","n",["factorial", ["-","n","1"]]]]]];
 assert.deepEqual( parse("(define factorial (lambda (n) (if (= n 0) 1 (* n (factorial (- n 1))))))"),fac_result);
+assert.deepEqual( parse("(    define     factorial (    lambda (     n    ) (   if (   =    n    0) 1     (    * n (   factorial (   - n 1     )))     )))"),fac_result);

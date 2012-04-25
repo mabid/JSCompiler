@@ -4,20 +4,19 @@ start =
 validchar
     = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
 
+spaces = " "*
+
+left_brace = "("
+right_brace = ")"
+
 atom =
-    chars:validchar+
+    spaces chars:validchar+ spaces
         { return chars.join(""); }
 
-exprlist = start:expression rest:spexpression*
-{return [start].concat(rest);}
+exprlist = list:expression*
+{return list;}
 
 expression = a:atom
 {return a;}
-/lb:"(" list:exprlist rb:")"
+/spaces left_brace list:exprlist spaces right_brace
 {return list;}
-
-
-spexpression = sp:" "start:expression 
-{return start;}
-
-
