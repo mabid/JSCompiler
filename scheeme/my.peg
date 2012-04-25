@@ -1,0 +1,23 @@
+start =
+    expression
+
+validchar
+    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+atom =
+    chars:validchar+
+        { return chars.join(""); }
+
+exprlist = start:expression rest:spexpression*
+{return [start].concat(rest);}
+
+expression = a:atom
+{return a;}
+/lb:"(" list:exprlist rb:")"
+{return list;}
+
+
+spexpression = sp:" "start:expression 
+{return start;}
+
+
