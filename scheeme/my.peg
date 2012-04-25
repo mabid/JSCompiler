@@ -4,13 +4,13 @@ start =
 validchar
     = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
 
-spaces = " "*
+escaps = [ \n\t]*
 
 left_brace = "("
 right_brace = ")"
 
 atom =
-    spaces chars:validchar+ spaces
+    escaps chars:validchar+ escaps
         { return chars.join(""); }
 
 exprlist = list:expression*
@@ -18,5 +18,5 @@ exprlist = list:expression*
 
 expression = a:atom
 {return a;}
-/spaces left_brace list:exprlist spaces right_brace
+/escaps left_brace list:exprlist escaps right_brace escaps
 {return list;}
